@@ -17,13 +17,16 @@ router.get('/:boardId', async (req, res) => {
 router.post('/', async (req, res) => {
   const boards = req.body;
 
-  let newBoards = []
+  let newBoards = [];
   await Promise.all(
     boards.map(async (board) => {
       const result = await req.context.models.Board.create({
         title: board.title,
       });
-      newBoards = [...newBoards, result]
+      newBoards = [
+        ...newBoards,
+        { ...result._doc, previous_id: board._id },
+      ];
     }),
   );
 

@@ -44,7 +44,8 @@ __webpack_require__.r(__webpack_exports__);
 // The list of file replacements can be found in `angular.json`.
 const environment = {
     production: false,
-    api: 'https://photoboard-backend.herokuapp.com/api',
+    // api: 'http://localhost:4201/api',
+    api: 'https://photoboard-backend.herokuapp.com/api'
 };
 /*
  * For easier debugging in development mode, you can import the following file
@@ -894,8 +895,7 @@ class PhotoBoardComponent {
             if (boards && boards.length) {
                 this.boards = boards;
                 this.dirtyBoards = [];
-                this.selectedBoard =
-                    this.selectedBoard._id === -1 ? boards[0] : this.selectedBoard;
+                this.selectedBoard = boards[0];
                 this.spinner.hide('photo-board-spinner');
             }
         });
@@ -922,9 +922,10 @@ class PhotoBoardComponent {
         });
     }
     addImage() {
+        var _a;
         const isExisted = this.images.find((img) => img.url === this.newImageUrl && img.board === this.selectedBoard._id);
-        if (!this.boards.length) {
-            this.toastrService.error('There is no any boards. Please input board first.');
+        if (!this.boards.length || (((_a = this.selectedBoard) === null || _a === void 0 ? void 0 : _a._id) && this.selectedBoard._id === -1)) {
+            this.toastrService.error('There is no any boards or seleceted board. Please create board first.');
             this.newImageUrl = '';
             return;
         }
@@ -991,6 +992,11 @@ class PhotoBoardComponent {
         this.spinnerMessage = 'Saving data...';
         this.spinner.show('photo-board-spinner');
         this.apiService.addBoards(this.dirtyBoards).subscribe((boards) => {
+            console.log(boards);
+            this.dirtyImages = this.dirtyImages.map((image) => {
+                const updatedBoard = boards.find((_board) => image.board === _board.previous_id);
+                return updatedBoard ? Object.assign(Object.assign({}, image), { board: updatedBoard._id }) : image;
+            });
             this.apiService
                 .addImages(this.dirtyImages)
                 .subscribe((images) => {
